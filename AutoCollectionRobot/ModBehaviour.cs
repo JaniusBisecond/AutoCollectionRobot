@@ -37,12 +37,15 @@ namespace AutoCollectionRobot
             harmony = new Harmony("AutoCollectionRobot");
             harmony.PatchAll();
 
+            ModManager.OnModActivated += OnModActivated;
             if (ModConfigAPI.IsAvailable())
             {
                 Debug.Log("AutoCollectRobot: ModConfig already available!");
                 ModConfigSupport.SetupModConfig();
                 ModConfigSupport.LoadConfigFromModConfig();
             }
+
+            LevelManager.OnLevelBeginInitializing += OnLevelChange;
 
             Init();
         }
@@ -52,6 +55,8 @@ namespace AutoCollectionRobot
             Debug.Log("Mod AutoCollectionRobot OnDisable!");
 
             harmony.UnpatchAll("AutoCollectionRobot");
+
+            LevelManager.OnLevelBeginInitializing -= OnLevelChange;
 
             ModManager.OnModActivated -= OnModActivated;
             ModConfigAPI.SafeRemoveOnOptionsChangedDelegate(ModConfigSupport.OnModConfigOptionsChanged);
@@ -142,6 +147,11 @@ namespace AutoCollectionRobot
                     _nextCollectTime = Time.time;
                 }
             }
+        }
+
+        private void OnLevelChange()
+        {
+            bIsCollecting = false;
         }
 
         private void CheckRobotLootboxAndTryCreateIfNone()
