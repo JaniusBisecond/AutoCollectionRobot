@@ -148,11 +148,11 @@ namespace AutoCollectionRobot
         {
             if (_robotLootbox == null)
             {
-                Debug.Log("CheckRobotLootboxAndTryCreateIfNone: no existing lootbox, creating one now.");
+                Debug.Log("AutoCollectRobot: CheckRobotLootboxAndTryCreateIfNone: no existing lootbox, creating one now.");
                 CreateRobotLootbox(config.robotInventoryNeedInspect, config.robotInventoryCapacity);
                 if (_robotLootbox == null)
                 {
-                    Debug.LogError("CheckRobotLootboxAndTryCreateIfNone: failed to create lootbox.");
+                    Debug.LogError("AutoCollectRobot: CheckRobotLootboxAndTryCreateIfNone: failed to create lootbox.");
                     CharacterMainControl.Main.PopText("机器人背包创建失败！");
                     return;
                 }
@@ -161,7 +161,7 @@ namespace AutoCollectionRobot
 
         public void OnConfigChanged()
         {
-            Debug.Log($"Capacity is {config.robotInventoryCapacity}, Inspect is {config.robotInventoryNeedInspect}");
+            //Debug.Log($"AutoCollectRobot: Capacity is {config.robotInventoryCapacity}, Inspect is {config.robotInventoryNeedInspect}");
             SetRobotLootboxProps(config.robotInventoryCapacity, config.robotInventoryNeedInspect);
         }
 
@@ -199,7 +199,7 @@ namespace AutoCollectionRobot
                 }
                 else
                 {
-                    Debug.LogWarning("SetLootboxShowSortButton: Cant find showSortButton");
+                    Debug.LogWarning("AutoCollectRobot: SetLootboxShowSortButton: Cant find showSortButton");
                 }
             }
             catch (Exception e)
@@ -216,7 +216,7 @@ namespace AutoCollectionRobot
 
                 if (_robotLootbox.Inventory == null)
                 {
-                    Debug.LogError("OpenLootInventory: lootbox inventory is null.");
+                    Debug.LogError("AutoCollectRobot: OpenLootInventory: lootbox inventory is null.");
                     return;
                 }
                 CharacterMainControl.Main.Interact(_robotLootbox);
@@ -328,7 +328,7 @@ namespace AutoCollectionRobot
                                 {
                                     if (player.CharacterItem.Inventory.GetFirstEmptyPosition() < 0)
                                     {
-                                        Debug.Log("SearchAndPickUpItems: Robot inventory is full, cannot pick up more items.");
+                                        Debug.Log("AutoCollectRobot: SearchAndPickUpItems: Robot inventory is full, cannot pick up more items.");
                                         CharacterMainControl.Main.PopText("背包已满!");
                                         return;
                                     }
@@ -384,14 +384,14 @@ namespace AutoCollectionRobot
                 {
                     if (!inventory.AddItem(item))
                     {
-                        Debug.Log("Inventory is full, cannot add item.");
+                        Debug.Log("AutoCollectRobot: Inventory is full, cannot add item.");
                         CharacterMainControl.Main.PopText("机器人背包满了");
                         return false;
                     }
                 }
                 return true;
             }
-            Debug.LogError("loot inventory is null");
+            Debug.LogError("AutoCollectRobot: PickupItemToLoot:loot inventory is null");
             return false;
         }
 
@@ -399,9 +399,6 @@ namespace AutoCollectionRobot
         {
             Item item = ItemAssetsCollection.InstantiateSync(RobotID);
             ItemUtilities.SendToPlayerCharacterInventory(item, false);
-            Debug.Log($"useDurability: {item.UsageUtilities.useDurability}");
-            Debug.Log($"item.UseDurability: {item.UseDurability}");
-            Debug.Log("Item.Durability: " + item.Durability + "item.UsageUtilities.durabilityUsage" + item.UsageUtilities.durabilityUsage);
         }
 
         ////////////////////////////////////////////////////
@@ -412,13 +409,13 @@ namespace AutoCollectionRobot
         {
             if (item == null)
             {
-                Debug.LogWarning("StartCollect: item is null");
+                Debug.LogWarning("AutoCollectRobot: StartCollect: item is null");
                 return;
             }
 
             if (item.TypeID != RobotID)
             {
-                Debug.LogWarning("StartCollect: item is not robot");
+                Debug.LogWarning("AutoCollectRobot: StartCollect: item is not robot");
                 return;
             }
 
@@ -430,12 +427,12 @@ namespace AutoCollectionRobot
         {
             if (item == null)
             {
-                Debug.LogWarning("StopCollect: item is null");
+                Debug.LogWarning("AutoCollectRobot: StopCollect: item is null");
                 return;
             }
             if (item.TypeID != RobotID)
             {
-                Debug.LogWarning("StopCollect: item is not robot");
+                Debug.LogWarning("AutoCollectRobot: StopCollect: item is not robot");
                 return;
             }
             CharacterMainControl.Main?.PopText("机器人停止收集.");

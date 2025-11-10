@@ -54,8 +54,6 @@ namespace AutoCollectionRobot
                 return;
             }
 
-            Debug.Log("准备添加ModConfig配置项");
-
             // 添加配置变更监听
             ModConfigAPI.SafeAddOnOptionsChangedDelegate(OnModConfigOptionsChanged);
 
