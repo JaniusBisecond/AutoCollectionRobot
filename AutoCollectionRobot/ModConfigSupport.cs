@@ -137,6 +137,8 @@ namespace AutoCollectionRobot
             // 保存到本地配置文件
             SaveConfig(ModBehaviour.Instance.config);
 
+            ModBehaviour.Instance.OnConfigChanged();
+
             Debug.Log($"AutoCollectRobot: ModConfig updated - {key}");
         }
 

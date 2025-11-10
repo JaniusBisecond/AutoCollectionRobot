@@ -22,8 +22,6 @@ using static UnityEngine.UI.Image;
 
 namespace AutoCollectionRobot
 {
-
-
     public class ModBehaviour : Duckov.Modding.ModBehaviour
     {
         public Harmony harmony;
@@ -124,7 +122,6 @@ namespace AutoCollectionRobot
         ////////////////////////////////////////////
         public AutoCollectionRobotConfig config = new AutoCollectionRobotConfig();
 
-        public float collectInterval = 2f;
         private float _nextCollectTime = 0f;
 
         public const int RobotID = 121;
@@ -134,7 +131,7 @@ namespace AutoCollectionRobot
 
         private void AutoCollectUpdate()
         {
-            if (bIsCollecting && _nextCollectTime + collectInterval <= Time.time )
+            if (bIsCollecting && _nextCollectTime + config.collectInterval <= Time.time)
             {
                 try
                 {
@@ -152,7 +149,7 @@ namespace AutoCollectionRobot
             if (_robotLootbox == null)
             {
                 Debug.Log("CheckRobotLootboxAndTryCreateIfNone: no existing lootbox, creating one now.");
-                CreateRobotLootbox();
+                CreateRobotLootbox(config.robotInventoryNeedInspect, config.robotInventoryCapacity);
                 if (_robotLootbox == null)
                 {
                     Debug.LogError("CheckRobotLootboxAndTryCreateIfNone: failed to create lootbox.");
@@ -162,6 +159,12 @@ namespace AutoCollectionRobot
             }
         }
 
+        public void OnConfigChanged()
+        {
+            Debug.Log($"Capacity is {config.robotInventoryCapacity}, Inspect is {config.robotInventoryNeedInspect}");
+            SetRobotLootboxProps(config.robotInventoryCapacity, config.robotInventoryNeedInspect);
+        }
+
         private void CreateRobotLootbox(bool bNeedInspect = false, int capacity = 512)
         {
             try
@@ -169,14 +172,19 @@ namespace AutoCollectionRobot
                 CharacterMainControl player = CharacterMainControl.Main;
                 _robotLootbox = UnityEngine.Object.Instantiate(InteractableLootbox.Prefab);
                 SetLootboxShowSortButton(_robotLootbox, true);
-                _robotLootbox.needInspect = bNeedInspect;
-                Inventory inv = InteractableLootbox.GetOrCreateInventory(_robotLootbox);
-                inv.SetCapacity(capacity);
+                SetRobotLootboxProps(capacity, bNeedInspect);
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
             }
+        }
+
+        private void SetRobotLootboxProps(int capacity, bool bNeedInspect)
+        {
+            _robotLootbox.needInspect = bNeedInspect;
+            Inventory inv = InteractableLootbox.GetOrCreateInventory(_robotLootbox);
+            inv.SetCapacity(capacity);
         }
 
         private static void SetLootboxShowSortButton(InteractableLootbox lootbox, bool value)
@@ -229,76 +237,102 @@ namespace AutoCollectionRobot
 
             Collider[] cols = new Collider[4096];
 
-            float overlapRadius = 10f;
+            float overlapRadius = config.collectRadius;
             int num = Physics.OverlapSphereNonAlloc(
                 player.transform.position,
                 overlapRadius,
                 cols
             );
 
-            //查看搜索范围
-            //List<Vector3> hitPositions = new List<Vector3>();
-            //foreach (Collider col in cols)
-            //{
-            //    if (col != null)
-            //    {
-            //        hitPositions.Add(col.ClosestPoint(player.transform.position));
-            //    }
-            //}
-            //DebugTools.DrawDetectionSphere(
-            //    player.transform.position,
-            //    overlapRadius,
-            //    2f,
-            //    48,
-            //    Color.cyan,
-            //    hitPositions,
-            //    Color.yellow,
-            //    true
-            //);
+            //绘制搜索范围
+            if (config.debugDrawCollectRadius)
+            {
+                List<Vector3> hitPositions = new List<Vector3>();
+                foreach (Collider col in cols)
+                {
+                    if (col != null)
+                    {
+                        hitPositions.Add(col.ClosestPoint(player.transform.position));
+                    }
+                }
+                DebugTools.DrawDetectionSphere(
+                    player.transform.position,
+                    overlapRadius,
+                    .5f,
+                    48,
+                    Color.cyan,
+                    hitPositions,
+                    Color.yellow,
+                    true
+                );
+            }
 
             for (int i = 0; i < num; i++)
             {
                 try
                 {
                     Collider collider = cols[i];
-                    if (collider == null) continue;
-
-                    InteractableLootbox lootbox = collider.GetComponent<InteractableLootbox>();
-                    if (lootbox != null && lootbox.Inventory != null && lootbox.Inventory.Content != null &&
-                        lootbox.Inventory.Content.Count > 0)
+                    if (collider == null)
                     {
-                        List<Item> itemList = new List<Item>();
-                        foreach (Item item in lootbox.Inventory.Content)
+                        continue;
+                    }
+                    if (config.collectLootBox && collider.GetComponent<InteractableLootbox>() != null)
+                    {
+                        InteractableLootbox lootbox = collider.GetComponent<InteractableLootbox>();
+                        if (lootbox != null && lootbox.Inventory != null && lootbox.Inventory.Content != null &&
+                            lootbox.Inventory.Content.Count > 0)
                         {
-                            try
+                            List<Item> itemList = new List<Item>();
+                            foreach (Item item in lootbox.Inventory.Content)
                             {
-                                if (item != null)
+                                try
                                 {
-                                    itemList.Add(item);
+                                    if (item != null)
+                                    {
+                                        itemList.Add(item);
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.LogException(e);
                                 }
                             }
-                            catch (Exception e)
-                            {
-                                Debug.LogException(e);
-                            }
-                        }
 
-                        foreach (Item item in itemList)
+                            foreach (Item item in itemList)
+                            {
+                                try
+                                {
+                                    if (player.CharacterItem.Inventory.GetFirstEmptyPosition() < 0)
+                                    {
+                                        Debug.Log("SearchAndPickUpItems: Robot inventory is full, cannot pick up more items.");
+                                        CharacterMainControl.Main.PopText("背包已满!");
+                                        return;
+                                    }
+                                    CheckRobotLootboxAndTryCreateIfNone();
+                                    PickupItemToLoot(item, _robotLootbox);
+                                }
+                                catch (Exception e)
+                                {
+                                    Debug.LogException(e);
+                                }
+                            }
+
+                        }
+                    }
+                    else if (config.collectGroundItems && collider.GetComponent<InteractablePickup>() != null)
+                    {
+                        InteractablePickup groundItem = collider.GetComponent<InteractablePickup>();
+                        if (groundItem && groundItem.ItemAgent && groundItem.ItemAgent.Item)
                         {
                             try
                             {
-                                if (player.CharacterItem.Inventory.GetFirstEmptyPosition() < 0)
-                                {
-                                    Debug.Log("背包已满!");
-                                    CharacterMainControl.Main.PopText("背包已满!");
-                                    return;
-                                }
+                                Item item = groundItem.ItemAgent.Item;
                                 CheckRobotLootboxAndTryCreateIfNone();
                                 PickupItemToLoot(item, _robotLootbox);
                             }
                             catch (Exception e)
                             {
-                                Debug.LogException(e);
+                                var a = e;
                             }
                         }
                     }
