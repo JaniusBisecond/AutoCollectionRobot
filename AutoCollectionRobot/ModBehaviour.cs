@@ -76,18 +76,6 @@ namespace AutoCollectionRobot
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Q))
-            {
-                Debug.Log("Q Pressed!");
-                CharacterMainControl.Main.PopText("QQQQ!");
-                AddRobotToInv();
-            }
-            if (Input.GetKeyDown(KeyCode.X))
-            {
-                Debug.Log("X Pressed!");
-                CharacterMainControl.Main.PopText("XXXX!");
-            }
-
             AutoCollectUpdate();
         }
 
@@ -104,6 +92,11 @@ namespace AutoCollectionRobot
         public const string i18n_Key_StopCollect = "StopCollect";
         public const string i18n_Key_OpenInv = "OpenInv";
 
+        public const string i18n_Key_RobotBagFull = "RobotBagFull";
+        public const string i18n_Key_RobotBagCreateFaild = "RobotBagCreateFaild";
+        public const string i18n_Key_RobotStartInspect = "RobotStartInspect";
+        public const string i18n_Key_RobotStopInspect = "RobotStopInspect";
+
         private void i18nDataInit()
         {
 
@@ -113,12 +106,22 @@ namespace AutoCollectionRobot
                 LocalizationManager.SetOverrideText(i18n_Key_StartCollect, "开始收集");
                 LocalizationManager.SetOverrideText(i18n_Key_StopCollect, "停止收集");
                 LocalizationManager.SetOverrideText(i18n_Key_OpenInv, "打开背包");
+                
+                LocalizationManager.SetOverrideText(i18n_Key_RobotBagFull, "机器人背包满了");
+                LocalizationManager.SetOverrideText(i18n_Key_RobotBagCreateFaild, "机器人背包创建失败");
+                LocalizationManager.SetOverrideText(i18n_Key_RobotStartInspect, "机器人开始收集...");
+                LocalizationManager.SetOverrideText(i18n_Key_RobotStopInspect, "机器人停止收集!");
             }
             else
             {
                 LocalizationManager.SetOverrideText(i18n_Key_StartCollect, "Start Collecting");
                 LocalizationManager.SetOverrideText(i18n_Key_StopCollect, "Stop Collecting");
                 LocalizationManager.SetOverrideText(i18n_Key_OpenInv, "Open Inventory");
+
+                LocalizationManager.SetOverrideText(i18n_Key_RobotBagFull, "Robot Inventory Full");
+                LocalizationManager.SetOverrideText(i18n_Key_RobotBagCreateFaild, "Robot Inventory Creation Failed");
+                LocalizationManager.SetOverrideText(i18n_Key_RobotStartInspect, "Robot Started Collecting...");
+                LocalizationManager.SetOverrideText(i18n_Key_RobotStopInspect, "Robot Stopped Collecting!");
             }
         }
 
@@ -163,7 +166,7 @@ namespace AutoCollectionRobot
                 if (_robotLootbox == null)
                 {
                     Debug.LogError("AutoCollectRobot: CheckRobotLootboxAndTryCreateIfNone: failed to create lootbox.");
-                    CharacterMainControl.Main.PopText("机器人背包创建失败！");
+                    CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagCreateFaild));
                     return;
                 }
             }
@@ -342,7 +345,7 @@ namespace AutoCollectionRobot
                                     if (player.CharacterItem.Inventory.GetFirstEmptyPosition() < 0)
                                     {
                                         Debug.Log("AutoCollectRobot: SearchAndPickUpItems: Robot inventory is full, cannot pick up more items.");
-                                        CharacterMainControl.Main.PopText("背包已满!");
+                                        CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
                                         return;
                                     }
                                     CheckRobotLootboxAndTryCreateIfNone();
@@ -398,7 +401,7 @@ namespace AutoCollectionRobot
                     if (!inventory.AddItem(item))
                     {
                         Debug.Log("AutoCollectRobot: Inventory is full, cannot add item.");
-                        CharacterMainControl.Main.PopText("机器人背包满了");
+                        CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
                         return false;
                     }
                 }
@@ -432,7 +435,7 @@ namespace AutoCollectionRobot
                 return;
             }
 
-            CharacterMainControl.Main?.PopText("机器人开始收集...");
+            CharacterMainControl.Main?.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotStartInspect));
             bIsCollecting = true;
         }
 
@@ -448,7 +451,7 @@ namespace AutoCollectionRobot
                 Debug.LogWarning("AutoCollectRobot: StopCollect: item is not robot");
                 return;
             }
-            CharacterMainControl.Main?.PopText("机器人停止收集.");
+            CharacterMainControl.Main?.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotStopInspect));
             bIsCollecting = false;
         }
 

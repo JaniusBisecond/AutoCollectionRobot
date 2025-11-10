@@ -18,7 +18,7 @@ namespace AutoCollectionRobot
         // 模板按钮,在 Postfix 第一次执行时初始化
         private static Button templateBtn;
 
-        // 缓存已创建的按钮
+        // 缓存已创建的按钮,偷懒使用i18nkey作为key
         private static readonly Dictionary<string, Button> _buttons = new Dictionary<string, Button>();
 
         [HarmonyPostfix]
