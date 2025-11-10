@@ -389,6 +389,7 @@ namespace AutoCollectionRobot
                         return false;
                     }
                 }
+                return true;
             }
             Debug.LogError("loot inventory is null");
             return false;
