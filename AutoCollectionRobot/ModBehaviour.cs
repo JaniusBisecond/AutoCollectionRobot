@@ -22,49 +22,13 @@ using static UnityEngine.UI.Image;
 
 namespace AutoCollectionRobot
 {
-    [System.Serializable]
-    public class AutoCollectionRobotConfig
-    {
-        /// <summary>
-        /// -检测间隔
-        /// -机器人背包搜索动画
-        /// -机器人背包容量
-        /// -地面物品收集开关
-        /// -容器物品收集开关
-        /// -收集范围
-        /// -收集范围调试开关
-        /// </summary>
-        public float collectInterval = 2f;
 
-        public bool robotInventoryNeedInspect = false;
-
-        public int robotInventoryCapacity = 512;
-
-        public bool collectGroundItems = false;
-
-        public bool collectLootBox = true;
-
-        public float collectRadius = 10f;
-
-        public bool debugDrawCollectRadius = false;
-
-        // 强制更新配置文件token
-        public string configToken = "auto_collection_robot_v1";
-    }
 
     public class ModBehaviour : Duckov.Modding.ModBehaviour
     {
         public Harmony harmony;
 
         public static ModBehaviour Instance { get; private set; }
-
-        private void OnDestroy()
-        {
-            if (_text != null)
-            {
-                Destroy(_text);
-            }
-        }
 
         private void OnEnable()
         {
@@ -78,23 +42,12 @@ namespace AutoCollectionRobot
             if (ModConfigAPI.IsAvailable())
             {
                 Debug.Log("AutoCollectRobot: ModConfig already available!");
-                SetupModConfig();
-                LoadConfigFromModConfig();
+                ModConfigSupport.SetupModConfig();
+                ModConfigSupport.LoadConfigFromModConfig();
             }
 
             Init();
         }
-
-        private void OnModActivated(ModInfo info, Duckov.Modding.ModBehaviour behaviour)
-        {
-            if (info.name == ModConfigAPI.ModConfigName)
-            {
-                Debug.Log("AutoCollectRobot: ModConfig activated!");
-                SetupModConfig();
-                LoadConfigFromModConfig();
-            }
-        }
-
 
         private void OnDisable()
         {
@@ -103,9 +56,19 @@ namespace AutoCollectionRobot
             harmony.UnpatchAll("AutoCollectionRobot");
 
             ModManager.OnModActivated -= OnModActivated;
-            ModConfigAPI.SafeRemoveOnOptionsChangedDelegate(OnModConfigOptionsChanged);
+            ModConfigAPI.SafeRemoveOnOptionsChangedDelegate(ModConfigSupport.OnModConfigOptionsChanged);
 
             Instance = null;
+        }
+
+        private void OnModActivated(ModInfo info, Duckov.Modding.ModBehaviour behaviour)
+        {
+            if (info.name == ModConfigAPI.ModConfigName)
+            {
+                Debug.Log("AutoCollectRobot: ModConfig activated!");
+                ModConfigSupport.SetupModConfig();
+                ModConfigSupport.LoadConfigFromModConfig();
+            }
         }
 
         private void Update()
@@ -130,168 +93,6 @@ namespace AutoCollectionRobot
             i18nDataInit();
         }
 
-        ////////////////////////////////////////////
-        /// ModConfig
-        ////////////////////////////////////////////
-        public static string MOD_NAME = "AutoCollectionRobotMod";
-
-        AutoCollectionRobotConfig config = new AutoCollectionRobotConfig();
-
-        private static string persistentConfigPath => Path.Combine(Application.streamingAssetsPath, "AutoCollectionRobotConfig.json");
-
-        TextMeshProUGUI _text = null;
-        TextMeshProUGUI Text
-        {
-            get
-            {
-                if (_text == null)
-                {
-                    _text = Instantiate(GameplayDataSettings.UIStyle.TemplateTextUGUI);
-                    _text.gameObject.SetActive(false);
-                }
-                return _text;
-            }
-        }
-
-        private void SetupModConfig()
-        {
-            if (!ModConfigAPI.IsAvailable())
-            {
-                Debug.LogWarning("AutoCollectRobot: ModConfig not available");
-                return;
-            }
-
-            Debug.Log("准备添加ModConfig配置项");
-
-            // 添加配置变更监听
-            ModConfigAPI.SafeAddOnOptionsChangedDelegate(OnModConfigOptionsChanged);
-
-            // 根据当前语言设置描述文字
-            SystemLanguage[] chineseLanguages = {
-                SystemLanguage.Chinese,
-                SystemLanguage.ChineseSimplified,
-                SystemLanguage.ChineseTraditional
-            };
-
-            bool isChinese = chineseLanguages.Contains(LocalizationManager.CurrentLanguage);
-
-            ModConfigAPI.SafeAddBoolDropdownList(
-                MOD_NAME,
-                "debugDrawCollectRadius",
-                isChinese ? "调试显示收集范围" : "Debug Draw Collect Radius",
-                config.debugDrawCollectRadius
-            );
-
-            ModConfigAPI.SafeAddInputWithSlider(
-                MOD_NAME,
-                "collectInterval",
-                isChinese ? "收集间隔(秒)" : "Collect Interval (seconds)",
-                typeof(float),
-                config.collectInterval,
-                new Vector2(0.5f, 10f)
-            );
-
-            ModConfigAPI.SafeAddInputWithSlider(
-                MOD_NAME,
-                "collectRadius",
-                isChinese ? "收集范围" : "Collect Radius",
-                typeof(float),
-                config.collectRadius,
-                new Vector2(1f, 50f)
-            );
-
-            ModConfigAPI.SafeAddInputWithSlider(
-                MOD_NAME,
-                "robotInventoryCapacity",
-                isChinese ? "机器人背包容量" : "Robot Inventory Capacity",
-                typeof(int),
-                config.robotInventoryCapacity,
-                new Vector2(10, 2048)
-            );
-
-            ModConfigAPI.SafeAddBoolDropdownList(
-                MOD_NAME,
-                "collectGroundItems",
-                isChinese ? "收集地面物品" : "Collect Ground Items",
-                config.collectGroundItems
-            );
-
-            ModConfigAPI.SafeAddBoolDropdownList(
-                MOD_NAME,
-                "collectLootBox",
-                isChinese ? "收集容器物品" : "Collect Loot Box Items",
-                config.collectLootBox
-            );
-
-            ModConfigAPI.SafeAddBoolDropdownList(
-                MOD_NAME,
-                "robotInventoryNeedInspect",
-                isChinese ? "机器人背包搜索动画" : "Robot Inventory Needs Inspect Animation",
-                config.robotInventoryNeedInspect
-            );
-
-            Debug.Log("AutoCollectRobot: ModConfig setup completed");
-        }
-
-        private void OnModConfigOptionsChanged(string key)
-        {
-            if (!key.StartsWith(MOD_NAME + "_"))
-                return;
-
-            // 使用新的 LoadConfig 方法读取配置
-            LoadConfigFromModConfig();
-
-            // 保存到本地配置文件
-            SaveConfig(config);
-
-            //// 更新当前显示的文本样式（如果正在显示）
-            //UpdateTextStyle();
-
-            Debug.Log($"AutoCollectRobot: ModConfig updated - {key}");
-        }
-
-        private void LoadConfigFromModConfig()
-        {
-            config.collectInterval = ModConfigAPI.SafeLoad<float>(MOD_NAME, "collectInterval", config.collectInterval);
-            config.robotInventoryNeedInspect = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "robotInventoryNeedInspect", config.robotInventoryNeedInspect);
-            config.robotInventoryCapacity = ModConfigAPI.SafeLoad<int>(MOD_NAME, "robotInventoryCapacity", config.robotInventoryCapacity);
-            config.collectGroundItems = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "collectGroundItems", config.collectGroundItems);
-            config.collectLootBox = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "collectLootBox", config.collectLootBox);
-            config.collectRadius = ModConfigAPI.SafeLoad<float>(MOD_NAME, "collectRadius", config.collectRadius);
-            config.debugDrawCollectRadius = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "debugDrawCollectRadius", config.debugDrawCollectRadius);
-        }
-
-        private void SaveConfig(AutoCollectionRobotConfig config)
-        {
-            try
-            {
-                string json = JsonUtility.ToJson(config, true);
-                File.WriteAllText(persistentConfigPath, json);
-                Debug.Log("AutoCollectRobot: Config saved");
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"AutoCollectRobot: Failed to save config: {e}");
-            }
-        }
-
-        //private void UpdateTextStyle()
-        //{
-        //    if (_text != null)
-        //    {
-        //        _text.fontSize = config.fontSize;
-
-        //        // 解析颜色
-        //        if (ColorUtility.TryParseHtmlString(config.textColor, out Color color))
-        //        {
-        //            _text.color = color;
-        //        }
-        //        else
-        //        {
-        //            _text.color = Color.white; // 默认颜色
-        //        }
-        //    }
-        //}
         ////////////////////////////////////////////
         /// 本地化
         ////////////////////////////////////////////
@@ -321,6 +122,7 @@ namespace AutoCollectionRobot
         ////////////////////////////////////////////
         /// 机器人背包,拾取
         ////////////////////////////////////////////
+        public AutoCollectionRobotConfig config = new AutoCollectionRobotConfig();
 
         public float collectInterval = 2f;
         private float _nextCollectTime = 0f;
