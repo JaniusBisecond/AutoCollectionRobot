@@ -303,6 +303,9 @@ namespace AutoCollectionRobot
                     if (config.collectLootBox && collider.GetComponent<InteractableLootbox>() != null)
                     {
                         InteractableLootbox lootbox = collider.GetComponent<InteractableLootbox>();
+                        //Debug.Log($"AutoCollectRobot: SearchAndPickUpItems: Found lootbox {lootbox.name}");
+                        if (lootbox.name == "PlayerStorage") return;
+
                         if (lootbox != null && lootbox.Inventory != null && lootbox.Inventory.Content != null &&
                             lootbox.Inventory.Content.Count > 0)
                         {
