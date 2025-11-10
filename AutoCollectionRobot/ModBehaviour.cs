@@ -252,7 +252,30 @@ namespace AutoCollectionRobot
                 {
                     if (col != null)
                     {
-                        hitPositions.Add(col.ClosestPoint(player.transform.position));
+                        Vector3 closestPoint;
+                        try
+                        {
+                            // 仅对受支持的碰撞体使用 Collider.ClosestPoint，以避免非凸 MeshCollider 等抛出异常
+                            if (col is BoxCollider || col is SphereCollider || col is CapsuleCollider)
+                            {
+                                closestPoint = col.ClosestPoint(player.transform.position);
+                            }
+                            else if (col is MeshCollider meshCol && meshCol.convex)
+                            {
+                                closestPoint = col.ClosestPoint(player.transform.position);
+                            }
+                            else
+                            {
+                                // 回退：对任意类型使用 bounds 的最近点（不会抛异常，作为可视化近似）
+                                closestPoint = col.bounds.ClosestPoint(player.transform.position);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            // 最后保险回退到 bounds
+                            closestPoint = col.bounds.ClosestPoint(player.transform.position);
+                        }
+                        hitPositions.Add(closestPoint);
                     }
                 }
                 DebugTools.DrawDetectionSphere(
@@ -267,6 +290,7 @@ namespace AutoCollectionRobot
                 );
             }
 
+            // 拾取
             for (int i = 0; i < num; i++)
             {
                 try
