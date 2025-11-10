@@ -28,7 +28,10 @@ namespace AutoCollectionRobot
             {
                 if (templateBtn == null)
                 {
-                    templateBtn = ___btn_Wishlist.GetComponent<Button>();
+                    if (___btn_Wishlist != null)
+                    {
+                        templateBtn = ___btn_Wishlist;
+                    }
                     if (templateBtn == null)
                     {
                         Debug.LogError("ItemOperationMenuAddButtonsPatch: cant get btn_Wishlist template");
@@ -42,11 +45,13 @@ namespace AutoCollectionRobot
                     return;
                 }
 
+                bool isCollecting = ModBehaviour.Instance != null && ModBehaviour.Instance.bIsCollecting;
+
                 //创建按钮
                 bool bShowBtn = ___displayingItem.TypeID == ModBehaviour.RobotID;
                 if (bShowBtn)
                 {
-                    if (ModBehaviour.Instance.bIsCollecting)
+                    if (isCollecting)
                     {
                         var btnStopPickup = GetOrCreateButton(
                             ___displayingItem,
@@ -92,17 +97,19 @@ namespace AutoCollectionRobot
                 {
                     try
                     {
+                        var btn = kv.Value;
+                        if (btn == null) continue; // 按钮可能被销毁或为 null（Unity 特殊 null）
                         if (kv.Key == ModBehaviour.i18n_Key_StartCollect)
                         {
-                            kv.Value.gameObject.SetActive(bShowBtn && !ModBehaviour.Instance.bIsCollecting);
+                            btn.gameObject.SetActive(bShowBtn && !isCollecting);
                         }
                         else if (kv.Key == ModBehaviour.i18n_Key_StopCollect)
                         {
-                            kv.Value.gameObject.SetActive(bShowBtn && ModBehaviour.Instance.bIsCollecting);
+                            btn.gameObject.SetActive(bShowBtn && isCollecting);
                         }
                         else
                         {
-                            kv.Value.gameObject.SetActive(bShowBtn);
+                            btn.gameObject.SetActive(bShowBtn);
                         }
                     }
                     catch (Exception e)
