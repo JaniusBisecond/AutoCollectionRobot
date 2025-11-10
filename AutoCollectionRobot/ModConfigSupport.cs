@@ -10,36 +10,6 @@ using UnityEngine;
 
 namespace AutoCollectionRobot
 {
-    [System.Serializable]
-    public class AutoCollectionRobotConfig
-    {
-        /// <summary>
-        /// -检测间隔
-        /// -机器人背包搜索动画
-        /// -机器人背包容量
-        /// -地面物品收集开关
-        /// -容器物品收集开关
-        /// -收集范围
-        /// -收集范围调试开关
-        /// </summary>
-        public float collectInterval = 2f;
-
-        public bool robotInventoryNeedInspect = false;
-
-        public int robotInventoryCapacity = 512;
-
-        public bool collectGroundItems = false;
-
-        public bool collectLootBox = true;
-
-        public float collectRadius = 10f;
-
-        public bool debugDrawCollectRadius = false;
-
-        // 强制更新配置文件token
-        public string configToken = "auto_collection_robot_v1";
-    }
-
     public class ModConfigSupport
     {
         public static string MOD_NAME = "AutoCollectionRobotMod";

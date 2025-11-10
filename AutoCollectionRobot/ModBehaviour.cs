@@ -44,6 +44,18 @@ namespace AutoCollectionRobot
                 ModConfigSupport.SetupModConfig();
                 ModConfigSupport.LoadConfigFromModConfig();
             }
+            else
+            {
+                Debug.Log("AutoCollectRobot: ModConfig not available, loading local config.");
+                try
+                {
+                    config = LocalConfig.Load();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
 
             LevelManager.OnLevelBeginInitializing += OnLevelChange;
 
