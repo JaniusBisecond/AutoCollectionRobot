@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<Nullable>enable</Nullable>
+
+		<!-- For Windows users, please fill the folder path which contains Duckov.exe below -->
+		<!-- Windows 用户请在下面这行填写你的鸭科夫安装路径（包含 Duckov.exe 的目录），这样编译器就能找到相关的 dll 文件 -->
+		<DuckovPath>C:/JaniusRoot/GameApps/Steam/steamapps/common/Escape from Duckov</DuckovPath>
+
+		<SubPath>\Duckov_Data\Managed\</SubPath>
+
+	</PropertyGroup>
+	<ItemGroup>
+		<Reference Include="$(DuckovPath)$(SubPath)TeamSoda.*" />
+		<Reference Include="$(DuckovPath)$(SubPath)ItemStatsSystem.dll" />
+		<Reference Include="$(DuckovPath)$(SubPath)Unity*" />
+		<Reference Include="$(DuckovPath)\Duckov_Data\Managed\SodaLocalization.dll"/>
+		<Reference Include="0Harmony">
+			<HintPath>..\..\..\..\..\GameApps\Steam\steamapps\workshop\content\3167020\3589088839\0Harmony.dll</HintPath>
+		</Reference>
+		<Reference Include="HarmonyLoadMod">
+			<HintPath>..\..\..\..\..\GameApps\Steam\steamapps\workshop\content\3167020\3589088839\HarmonyLoadMod.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="C:\JaniusRoot\GameApps\Steam\steamapps\common\Escape from Duckov\Duckov_Data\Mods\AutoCollectionRobot" />
+	</Target>
+</Project>
