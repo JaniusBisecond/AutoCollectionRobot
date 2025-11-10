@@ -1,24 +1,11 @@
-﻿using Duckov.ItemUsage;
-using Duckov.Modding;
-using Duckov.UI;
-using Duckov.Utilities;
+﻿using Duckov.Modding;
 using HarmonyLib;
 using ItemStatsSystem;
 using SodaCraft.Localizations;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using TMPro;
-using Unity.VisualScripting;
-using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
-using static UnityEngine.UI.Image;
 
 namespace AutoCollectionRobot
 {

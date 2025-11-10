@@ -1,11 +1,7 @@
-﻿using Duckov.Utilities;
-using SodaCraft.Localizations;
+﻿using SodaCraft.Localizations;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using TMPro;
 using UnityEngine;
 
 namespace AutoCollectionRobot

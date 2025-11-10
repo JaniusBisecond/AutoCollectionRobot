@@ -5,10 +5,7 @@ using UnityEngine.UI;
 using HarmonyLib;
 using Duckov.UI;
 using ItemStatsSystem;
-using System.Reflection;
-using TMPro;
 using SodaCraft.Localizations;
-using Unity.VisualScripting;
 
 namespace AutoCollectionRobot
 {
@@ -98,7 +95,7 @@ namespace AutoCollectionRobot
                     try
                     {
                         var btn = kv.Value;
-                        if (btn == null) continue; // 按钮可能被销毁或为 null（Unity 特殊 null）
+                        if (btn == null) continue;
                         if (kv.Key == ModBehaviour.i18n_Key_StartCollect)
                         {
                             btn.gameObject.SetActive(bShowBtn && !isCollecting);
