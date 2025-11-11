@@ -32,6 +32,8 @@ namespace AutoCollectionRobot
 
         public bool debugDrawCollectRadius = false;
 
+        public bool saveRobotInv = false;
+
         // 强制更新配置文件token，用于判断是否需要迁移/补全新字段
         public string configToken = LocalConfig.CurrentConfigToken;
     }
@@ -39,7 +41,7 @@ namespace AutoCollectionRobot
     public static class LocalConfig
     {
         // 当前配置版本 token
-        public const string CurrentConfigToken = "auto_collection_robot_v1";
+        public const string CurrentConfigToken = "auto_collection_robot_v2";
 
         private const string FileName = "AutoCollectRobotLocalConfig.json";
 
@@ -235,6 +237,7 @@ namespace AutoCollectionRobot
             merged.collectLootBox = loaded.collectLootBox;
             merged.collectRadius = loaded.collectRadius;
             merged.debugDrawCollectRadius = loaded.debugDrawCollectRadius;
+            merged.saveRobotInv = loaded.saveRobotInv;
 
             merged.configToken = CurrentConfigToken;
 

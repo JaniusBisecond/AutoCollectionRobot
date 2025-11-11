@@ -87,6 +87,13 @@ namespace AutoCollectionRobot
                 ModBehaviour.Instance.config.robotInventoryNeedInspect
             );
 
+            ModConfigAPI.SafeAddBoolDropdownList(
+                MOD_NAME,
+                "saveRobotInv",
+                isChinese ? "切换关卡时保存机器人背包" : "Save Robot Inventory on Level Switch",
+                ModBehaviour.Instance.config.saveRobotInv
+            );
+
             Debug.Log("AutoCollectRobot: ModConfig setup completed");
         }
 
@@ -115,6 +122,7 @@ namespace AutoCollectionRobot
             ModBehaviour.Instance.config.collectLootBox = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "collectLootBox", ModBehaviour.Instance.config.collectLootBox);
             ModBehaviour.Instance.config.collectRadius = ModConfigAPI.SafeLoad<float>(MOD_NAME, "collectRadius", ModBehaviour.Instance.config.collectRadius);
             ModBehaviour.Instance.config.debugDrawCollectRadius = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "debugDrawCollectRadius", ModBehaviour.Instance.config.debugDrawCollectRadius);
+            ModBehaviour.Instance.config.saveRobotInv = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "saveRobotInv", ModBehaviour.Instance.config.saveRobotInv);
         }
 
         private static void SaveConfig(AutoCollectionRobotConfig config)

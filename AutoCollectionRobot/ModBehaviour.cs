@@ -1,11 +1,13 @@
 ﻿using Duckov.Modding;
 using HarmonyLib;
 using ItemStatsSystem;
+using ItemStatsSystem.Data;
 using SodaCraft.Localizations;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 namespace AutoCollectionRobot
 {
@@ -44,18 +46,23 @@ namespace AutoCollectionRobot
                 }
             }
 
-            LevelManager.OnLevelBeginInitializing += OnLevelChange;
+            LevelManager.OnAfterLevelInitialized += OnAfterLevelChanged;
 
             Init();
+        }
+
+        private void LevelManager_OnAfterLevelInitialized()
+        {
+            throw new NotImplementedException();
         }
 
         private void OnDisable()
         {
             Debug.Log("Mod AutoCollectionRobot OnDisable!");
 
-            harmony.UnpatchAll("AutoCollectionRobot");
+            LevelManager.OnAfterLevelInitialized -= OnAfterLevelChanged;
 
-            LevelManager.OnLevelBeginInitializing -= OnLevelChange;
+            harmony.UnpatchAll("AutoCollectionRobot");
 
             ModManager.OnModActivated -= OnModActivated;
             ModConfigAPI.SafeRemoveOnOptionsChangedDelegate(ModConfigSupport.OnModConfigOptionsChanged);
@@ -135,6 +142,9 @@ namespace AutoCollectionRobot
         public bool bIsCollecting = false;
 
         private InteractableLootbox _robotLootbox;
+        private InventoryData _invSnapshot;
+
+        private UniTask _inventoryLoadTask = UniTask.CompletedTask;
 
         private void AutoCollectUpdate()
         {
@@ -151,9 +161,18 @@ namespace AutoCollectionRobot
             }
         }
 
-        private void OnLevelChange()
+        public void OnBeforeLevelChange()
         {
             bIsCollecting = false;
+            if (config.saveRobotInv && _robotLootbox != null)
+            {
+                _invSnapshot = InventoryData.FromInventory(_robotLootbox.Inventory);
+            }
+        }
+
+        public void OnAfterLevelChanged()
+        {
+            CheckRobotLootboxAndTryCreateIfNone();
         }
 
         private void CheckRobotLootboxAndTryCreateIfNone()
@@ -177,18 +196,36 @@ namespace AutoCollectionRobot
             SetRobotLootboxProps(config.robotInventoryCapacity, config.robotInventoryNeedInspect);
         }
 
+
         private void CreateRobotLootbox(bool bNeedInspect = false, int capacity = 512)
         {
             try
             {
-                CharacterMainControl player = CharacterMainControl.Main;
                 _robotLootbox = UnityEngine.Object.Instantiate(InteractableLootbox.Prefab);
                 SetLootboxShowSortButton(_robotLootbox, true);
                 SetRobotLootboxProps(capacity, bNeedInspect);
+
+                if (config.saveRobotInv && _invSnapshot != null)
+                {
+                    try
+                    {
+                        _inventoryLoadTask = InventoryData.LoadIntoInventory(_invSnapshot, _robotLootbox.Inventory);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        _inventoryLoadTask = UniTask.CompletedTask;
+                    }
+                }
+                else
+                {
+                    _inventoryLoadTask = UniTask.CompletedTask;
+                }
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
+                _inventoryLoadTask = UniTask.CompletedTask;
             }
         }
 
@@ -220,11 +257,20 @@ namespace AutoCollectionRobot
             }
         }
 
-        private void OpenLootInventory()
+        private async UniTask OpenLootInventory()
         {
             try
             {
                 CheckRobotLootboxAndTryCreateIfNone();
+
+                try
+                {
+                    await _inventoryLoadTask;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
 
                 if (_robotLootbox.Inventory == null)
                 {
@@ -456,7 +502,7 @@ namespace AutoCollectionRobot
 
         public void OpenRobotInventory()
         {
-            OpenLootInventory();
+            OpenLootInventory().Forget();
         }
     }
 }

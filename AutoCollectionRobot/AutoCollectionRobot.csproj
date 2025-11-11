@@ -14,6 +14,7 @@
 		<Reference Include="$(DuckovPath)$(SubPath)TeamSoda.*" />
 		<Reference Include="$(DuckovPath)$(SubPath)ItemStatsSystem.dll" />
 		<Reference Include="$(DuckovPath)$(SubPath)Unity*" />
+		<Reference Include="$(DuckovPath)$(SubPath)UniTask*" />
 		<Reference Include="$(DuckovPath)\Duckov_Data\Managed\SodaLocalization.dll"/>
 		<Reference Include="0Harmony">
 			<HintPath>..\..\..\..\..\GameApps\Steam\steamapps\workshop\content\3167020\3589088839\0Harmony.dll</HintPath>
