@@ -1,4 +1,7 @@
-﻿using Duckov.Modding;
+﻿using Cysharp.Threading.Tasks;
+using Duckov;
+using Duckov.Economy;
+using Duckov.Modding;
 using HarmonyLib;
 using ItemStatsSystem;
 using ItemStatsSystem.Data;
@@ -7,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using Cysharp.Threading.Tasks;
 
 namespace AutoCollectionRobot
 {
@@ -77,6 +79,11 @@ namespace AutoCollectionRobot
 
         private void Update()
         {
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                SellItems.SellRobotItemsToShop();
+            }
+
             AutoCollectUpdate();
         }
 
@@ -129,6 +136,7 @@ namespace AutoCollectionRobot
         ////////////////////////////////////////////
         /// 机器人背包,拾取
         ////////////////////////////////////////////
+
         public AutoCollectionRobotConfig config = new AutoCollectionRobotConfig();
 
         private float _nextCollectTime = 0f;
@@ -136,7 +144,7 @@ namespace AutoCollectionRobot
         public const int RobotID = 121;
         public bool bIsCollecting = false;
 
-        private InteractableLootbox _robotLootbox;
+        internal InteractableLootbox _robotLootbox;
         private InventoryData _invSnapshot;
 
         private UniTask _inventoryLoadTask = UniTask.CompletedTask;
