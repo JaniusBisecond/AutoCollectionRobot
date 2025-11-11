@@ -51,11 +51,6 @@ namespace AutoCollectionRobot
             Init();
         }
 
-        private void LevelManager_OnAfterLevelInitialized()
-        {
-            throw new NotImplementedException();
-        }
-
         private void OnDisable()
         {
             Debug.Log("Mod AutoCollectionRobot OnDisable!");
