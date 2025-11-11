@@ -79,10 +79,10 @@ namespace AutoCollectionRobot
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Z))
-            {
-                SellItems.SellRobotItemsToShop();
-            }
+            //if (Input.GetKeyDown(KeyCode.Z))
+            //{
+            //    SellItems.SellRobotItemsToShop();
+            //}
 
             AutoCollectUpdate();
         }
@@ -99,6 +99,7 @@ namespace AutoCollectionRobot
         public const string i18n_Key_StartCollect = "StartCollect";
         public const string i18n_Key_StopCollect = "StopCollect";
         public const string i18n_Key_OpenInv = "OpenInv";
+        public const string i18n_Key_SellAllItem = "SellAllItem";
 
         public const string i18n_Key_RobotBagFull = "RobotBagFull";
         public const string i18n_Key_RobotBagCreateFaild = "RobotBagCreateFaild";
@@ -114,6 +115,7 @@ namespace AutoCollectionRobot
                 LocalizationManager.SetOverrideText(i18n_Key_StartCollect, "开始收集");
                 LocalizationManager.SetOverrideText(i18n_Key_StopCollect, "停止收集");
                 LocalizationManager.SetOverrideText(i18n_Key_OpenInv, "打开背包");
+                LocalizationManager.SetOverrideText(i18n_Key_SellAllItem, "一键出售");
                 
                 LocalizationManager.SetOverrideText(i18n_Key_RobotBagFull, "机器人背包满了");
                 LocalizationManager.SetOverrideText(i18n_Key_RobotBagCreateFaild, "机器人背包创建失败");
@@ -125,6 +127,7 @@ namespace AutoCollectionRobot
                 LocalizationManager.SetOverrideText(i18n_Key_StartCollect, "Start Collecting");
                 LocalizationManager.SetOverrideText(i18n_Key_StopCollect, "Stop Collecting");
                 LocalizationManager.SetOverrideText(i18n_Key_OpenInv, "Open Inventory");
+                LocalizationManager.SetOverrideText(i18n_Key_SellAllItem, "Sell All Items");
 
                 LocalizationManager.SetOverrideText(i18n_Key_RobotBagFull, "Robot Inventory Full");
                 LocalizationManager.SetOverrideText(i18n_Key_RobotBagCreateFaild, "Robot Inventory Creation Failed");
@@ -506,6 +509,11 @@ namespace AutoCollectionRobot
         public void OpenRobotInventory()
         {
             OpenLootInventory().Forget();
+        }
+
+        public void SellAllItem()
+        {
+            SellItems.SellRobotItemsToShop();
         }
     }
 }

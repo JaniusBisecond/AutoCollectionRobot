@@ -87,6 +87,21 @@ namespace AutoCollectionRobot
                         Debug.LogError("btnOpenRobotInv Get or Create failed");
                         return;
                     }
+
+                    if (LevelManager.Instance.IsBaseLevel)
+                    {
+                        Debug.Log("ItemOperationMenuAddButtonsPatch: In base, Create SellAllItem button");
+                        var btnSellAllItem = GetOrCreateButton(___displayingItem,
+                            ModBehaviour.i18n_Key_SellAllItem,
+                            new Color(0.1f, 0.9f, 0.9f),
+                            (item) => { ModBehaviour.Instance?.SellAllItem(); },
+                            2);
+                        if (btnSellAllItem == null)
+                        {
+                            Debug.LogError("btnSellAllItem Get or Create failed");
+                            return;
+                        }
+                    }
                 }
                 
                 //控制按钮可见
@@ -103,6 +118,10 @@ namespace AutoCollectionRobot
                         else if (kv.Key == ModBehaviour.i18n_Key_StopCollect)
                         {
                             btn.gameObject.SetActive(bShowBtn && isCollecting);
+                        }
+                        else if(kv.Key == ModBehaviour.i18n_Key_SellAllItem)
+                        {
+                            btn.gameObject.SetActive(bShowBtn && LevelManager.Instance.IsBaseLevel);
                         }
                         else
                         {
