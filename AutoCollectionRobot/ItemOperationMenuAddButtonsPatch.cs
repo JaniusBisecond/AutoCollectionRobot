@@ -90,7 +90,6 @@ namespace AutoCollectionRobot
 
                     if (LevelManager.Instance.IsBaseLevel)
                     {
-                        Debug.Log("ItemOperationMenuAddButtonsPatch: In base, Create SellAllItem button");
                         var btnSellAllItem = GetOrCreateButton(___displayingItem,
                             ModBehaviour.i18n_Key_SellAllItem,
                             new Color(0.1f, 0.9f, 0.9f),
