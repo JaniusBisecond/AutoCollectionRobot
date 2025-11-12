@@ -51,6 +51,7 @@ namespace AutoCollectionRobot
                         {
                             if (!it.CanBeSold) continue;
                             if (ItemWishlist.GetWishlistInfo(it.TypeID).isManuallyWishlisted) continue; //跳过愿望单物品
+                            if (it.TypeID == 451) continue; //跳过现金
                         }
                         catch
                         {
