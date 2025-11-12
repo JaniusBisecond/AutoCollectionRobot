@@ -79,10 +79,11 @@ namespace AutoCollectionRobot
 
         private void Update()
         {
-            //if (Input.GetKeyDown(KeyCode.Z))
-            //{
-            //    SellItems.SellRobotItemsToShop();
-            //}
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                Item item = ItemAssetsCollection.InstantiateSync((int)RobotID);
+                ItemUtilities.SendToPlayerCharacterInventory(item, false);
+            }
 
             AutoCollectUpdate();
         }
