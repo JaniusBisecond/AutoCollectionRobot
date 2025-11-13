@@ -16,12 +16,12 @@ namespace AutoCollectionRobot
     public class SellItems
     {
 
-        private const string merchantID_Fo = "Merchant_Fo";                 //佛哥
-        private const string merchantID_Ming = "Merchant_Ming";             //小明
-        private const string merchantID_Weapon = "Merchant_Weapon";         //老吴
-        private const string merchantID_Equipment = "Merchant_Equipment";   //橘子
-        private const string merchantID_Mud = "Merchant_Mud";               //泥巴
-        private const string merchantID_Normal = "Merchant_Normal";         //售货机
+        public const string merchantID_Fo = "Merchant_Fo";                 //佛哥
+        public const string merchantID_Ming = "Merchant_Ming";             //小明
+        public const string merchantID_Weapon = "Merchant_Weapon";         //老吴
+        public const string merchantID_Equipment = "Merchant_Equipment";   //橘子
+        public const string merchantID_Mud = "Merchant_Mud";               //泥巴
+        public const string merchantID_Normal = "Merchant_Normal";         //售货机
 
         public static void SellRobotItemsToShop()
         {
@@ -112,7 +112,7 @@ namespace AutoCollectionRobot
 
         //尝试找到给定 MerchantID 的 StockShop 实例
         //若给定 MerchantID 不存在，优先返回普通售货机
-        private static StockShop TryFindShopByMerchanID(string merchantId)
+        public static StockShop TryFindShopByMerchanID(string merchantId)
         {
             try
             {
@@ -123,7 +123,7 @@ namespace AutoCollectionRobot
                 var shops = UnityEngine.Object.FindObjectsOfType<StockShop>();
                 if (shops == null || shops.Length == 0)
                 {
-                    Debug.LogError("AutoCollectRobot: TryFindShopByMerchanID: No StockShop instances found in scene.");
+                    Debug.Log("AutoCollectRobot: TryFindShopByMerchanID: No StockShop instances found in scene.");
                     return null;
                 }
                 foreach (var s in shops)

@@ -1,6 +1,4 @@
 ﻿using Cysharp.Threading.Tasks;
-using Duckov;
-using Duckov.Economy;
 using Duckov.Modding;
 using HarmonyLib;
 using ItemStatsSystem;
@@ -10,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+
 
 namespace AutoCollectionRobot
 {
@@ -79,11 +78,11 @@ namespace AutoCollectionRobot
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Z))
-            {
-                Item item = ItemAssetsCollection.InstantiateSync((int)RobotID);
-                ItemUtilities.SendToPlayerCharacterInventory(item, false);
-            }
+            //if (Input.GetKeyDown(KeyCode.Z))
+            //{
+            //    Item item = ItemAssetsCollection.InstantiateSync((int)RobotID);
+            //    ItemUtilities.SendToPlayerCharacterInventory(item, false);
+            //}
 
             AutoCollectUpdate();
         }
@@ -173,6 +172,7 @@ namespace AutoCollectionRobot
             bIsCollecting = false;
             if (config.saveRobotInv && _robotLootbox != null)
             {
+                Debug.Log("Level will change! Save Inv snapshot");
                 _invSnapshot = InventoryData.FromInventory(_robotLootbox.Inventory);
             }
         }
@@ -215,8 +215,10 @@ namespace AutoCollectionRobot
                 if (config.saveRobotInv && _invSnapshot != null)
                 {
                     try
-                    {
-                        _inventoryLoadTask = InventoryData.LoadIntoInventory(_invSnapshot, _robotLootbox.Inventory);
+                    {   
+                        // 加载完 _invSnapshot 会清楚，解决子场景 Bug
+                        Debug.Log("Load saved robot inv from snapshot.");
+                        _inventoryLoadTask = LoadSnapshotIntoInventoryAsync(_invSnapshot, _robotLootbox.Inventory);
                     }
                     catch (Exception e)
                     {
@@ -233,6 +235,30 @@ namespace AutoCollectionRobot
             {
                 Debug.LogException(e);
                 _inventoryLoadTask = UniTask.CompletedTask;
+            }
+        }
+
+        private async UniTask LoadSnapshotIntoInventoryAsync(InventoryData snapshot, Inventory inv)
+        {
+            if (snapshot == null || inv == null)
+            {
+                // 确保字段被清空以避免重用（即使传入 snapshot 为 null，也安全）
+                _invSnapshot = null;
+                return;
+            }
+
+            try
+            {
+                await InventoryData.LoadIntoInventory(snapshot, inv);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            finally
+            {
+                // 无论成功或失败，清除快照，确保它只被使用一次
+                _invSnapshot = null;
             }
         }
 

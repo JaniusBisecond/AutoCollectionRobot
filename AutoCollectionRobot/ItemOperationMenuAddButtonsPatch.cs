@@ -120,7 +120,8 @@ namespace AutoCollectionRobot
                         }
                         else if(kv.Key == ModBehaviour.i18n_Key_SellAllItem)
                         {
-                            btn.gameObject.SetActive(bShowBtn && LevelManager.Instance.IsBaseLevel);
+                            var shop = SellItems.TryFindShopByMerchanID(SellItems.merchantID_Fo);
+                            btn.gameObject.SetActive(bShowBtn && LevelManager.Instance.IsBaseLevel && shop != null);
                         }
                         else
                         {
