@@ -63,7 +63,7 @@ namespace AutoCollectionRobot
                 isChinese ? "机器人背包容量" : "Robot Inventory Capacity",
                 typeof(int),
                 ModBehaviour.Instance.config.robotInventoryCapacity,
-                new Vector2(10, 2048)
+                new Vector2(10, 4096)
             );
 
             ModConfigAPI.SafeAddBoolDropdownList(

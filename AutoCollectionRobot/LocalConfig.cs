@@ -282,9 +282,9 @@ namespace AutoCollectionRobot
                 UnityEngine.Debug.LogWarning($"AutoCollectRobot: LocalConfig: collectRadius invalid ({oldCollectRadius}), clamped to {cfg.collectRadius}");
             }
 
-            // robotInventoryCapacity: [10, 2048]
+            // robotInventoryCapacity: [10, 4096]
             int oldCapacity = cfg.robotInventoryCapacity;
-            int minCap = 10, maxCap = 2048;
+            int minCap = 10, maxCap = 4096;
             if (oldCapacity < minCap)
             {
                 cfg.robotInventoryCapacity = minCap;
