@@ -394,6 +394,8 @@ namespace AutoCollectionRobot
                     if (config.collectLootBox && collider.GetComponent<InteractableLootbox>() != null)
                     {
                         InteractableLootbox lootbox = collider.GetComponent<InteractableLootbox>();
+                        if (IsMainCharacterDeadLoot(lootbox)) continue;
+
                         //Debug.Log($"AutoCollectRobot: SearchAndPickUpItems: Found lootbox {lootbox.name}");
                         if (lootbox.name == "PlayerStorage") return;
 
@@ -460,6 +462,42 @@ namespace AutoCollectionRobot
                     Debug.LogException(e);
                 }
             }
+        }
+
+        private bool IsMainCharacterDeadLoot(InteractableLootbox lootbox)
+        {
+            if (lootbox == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                string displayNameKey = null;
+                FieldInfo fi = typeof(InteractableLootbox).GetField("displayNameKey", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (fi != null)
+                {
+                    try
+                    {
+                        object val = fi.GetValue(lootbox);
+                        displayNameKey = val as string;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
+                }
+                if (displayNameKey == "UI_Interact_Tomb")
+                {
+                    Debug.Log("AutoCollectRobot: IsMainCharacterDeadLoot: Found main character tomb lootbox.");
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            return false;
         }
 
         private bool PickupItemToLoot(Item item, InteractableLootbox lootbox)
