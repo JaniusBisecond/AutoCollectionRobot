@@ -381,80 +381,34 @@ namespace AutoCollectionRobot
                 );
             }
 
+            CheckRobotLootboxAndTryCreateIfNone();
+            if (_robotLootbox.Inventory.GetFirstEmptyPosition() < 0)
+            {
+                Debug.Log("AutoCollectRobot: Inventory is full, cannot add item.");
+                CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
+                return;
+            }
+
             // 拾取
             for (int i = 0; i < num; i++)
             {
                 try
                 {
                     Collider collider = cols[i];
-                    if (collider == null)
-                    {
-                        continue;
-                    }
+                    if (collider == null) continue;
+
                     if (config.collectLootBox && collider.GetComponent<InteractableLootbox>() != null)
                     {
                         InteractableLootbox lootbox = collider.GetComponent<InteractableLootbox>();
-                        if (IsMainCharacterDeadLoot(lootbox)) continue;
-
-                        //Debug.Log($"AutoCollectRobot: SearchAndPickUpItems: Found lootbox {lootbox.name}");
-                        if (lootbox.name == "PlayerStorage") return;
-
-                        if (lootbox != null && lootbox.Inventory != null && lootbox.Inventory.Content != null &&
-                            lootbox.Inventory.Content.Count > 0)
-                        {
-                            List<Item> itemList = new List<Item>();
-                            foreach (Item item in lootbox.Inventory.Content)
-                            {
-                                try
-                                {
-                                    if (item != null)
-                                    {
-                                        itemList.Add(item);
-                                    }
-                                }
-                                catch (Exception e)
-                                {
-                                    Debug.LogException(e);
-                                }
-                            }
-
-                            foreach (Item item in itemList)
-                            {
-                                try
-                                {
-                                    if (player.CharacterItem.Inventory.GetFirstEmptyPosition() < 0)
-                                    {
-                                        Debug.Log("AutoCollectRobot: SearchAndPickUpItems: Robot inventory is full, cannot pick up more items.");
-                                        CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
-                                        return;
-                                    }
-                                    CheckRobotLootboxAndTryCreateIfNone();
-                                    PickupItemToLoot(item, _robotLootbox);
-                                }
-                                catch (Exception e)
-                                {
-                                    Debug.LogException(e);
-                                }
-                            }
-
-                        }
+                        CollectLootBox(lootbox);
                     }
                     else if (config.collectGroundItems && collider.GetComponent<InteractablePickup>() != null)
                     {
                         InteractablePickup groundItem = collider.GetComponent<InteractablePickup>();
-                        if (groundItem && groundItem.ItemAgent && groundItem.ItemAgent.Item)
-                        {
-                            try
-                            {
-                                Item item = groundItem.ItemAgent.Item;
-                                CheckRobotLootboxAndTryCreateIfNone();
-                                PickupItemToLoot(item, _robotLootbox);
-                            }
-                            catch (Exception e)
-                            {
-                                var a = e;
-                            }
-                        }
+                        if (groundItem.ItemAgent == null || groundItem.ItemAgent.Item == null) continue;
+
+                        Item item = groundItem.ItemAgent.Item;
+                        PickupItemToLoot(item, _robotLootbox);
                     }
                 }
                 catch (Exception e)
@@ -464,16 +418,33 @@ namespace AutoCollectionRobot
             }
         }
 
-        private bool IsMainCharacterDeadLoot(InteractableLootbox lootbox)
+        private void CollectLootBox(InteractableLootbox lootbox)
         {
-            if (lootbox == null)
+            //Debug.Log($"AutoCollectRobot: SearchAndPickUpItems: Found lootbox {lootbox.name}");
+            if (lootbox.name == "PlayerStorage") return;
+
+            if (lootbox.Inventory == null || lootbox.Inventory.IsEmpty()) return;
+
+            if (IsMainCharacterDeadLoot(lootbox)) return;
+
+            List<Item> itemList = new List<Item>();
+            foreach (Item item in lootbox.Inventory.Content)
             {
-                return false;
+                if (item == null) continue;
+                itemList.Add(item);
             }
 
+            foreach (Item item in itemList)
+            {
+                PickupItemToLoot(item, _robotLootbox);
+            }
+        }
+
+        private bool IsMainCharacterDeadLoot(InteractableLootbox lootbox)
+        {
             try
             {
-                string displayNameKey = null;
+                string displayNameKey = string.Empty;
                 FieldInfo fi = typeof(InteractableLootbox).GetField("displayNameKey", BindingFlags.Instance | BindingFlags.NonPublic);
                 if (fi != null)
                 {
@@ -502,28 +473,49 @@ namespace AutoCollectionRobot
 
         private bool PickupItemToLoot(Item item, InteractableLootbox lootbox)
         {
-            if (item == null)
+            if (item == null) return false;
+
+            Inventory inventory = lootbox.Inventory;
+            if (inventory == null)
+            {
+                Debug.LogError("AutoCollectRobot: PickupItemToLoot:loot inventory is null");
+                return false;
+            }
+
+            int value = item.GetTotalRawValue();
+
+            // 如物品不可堆疊，判斷物品價值
+            if (!item.Stackable && value < config.collectValue)
             {
                 return false;
             }
 
-            Inventory inventory = lootbox.Inventory;
-            if (inventory != null)
+            // 跳過已錄入的鑰匙
+            if (isKeyAndRecored(item))
             {
-                item.AgentUtilities.ReleaseActiveAgent();
-                item.Detach();
-                if (!inventory.AddAndMerge(item))
-                {
-                    if (!inventory.AddItem(item))
-                    {
-                        Debug.Log("AutoCollectRobot: Inventory is full, cannot add item.");
-                        CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
-                        return false;
-                    }
-                }
-                return true;
+                return false;
             }
-            Debug.LogError("AutoCollectRobot: PickupItemToLoot:loot inventory is null");
+
+            item.AgentUtilities.ReleaseActiveAgent();
+            item.Detach();
+            if (!inventory.AddAndMerge(item))
+            {
+                if (!inventory.AddItem(item))
+                {
+                    Debug.Log("AutoCollectRobot: Inventory is full, cannot add item.");
+                    CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private bool isKeyAndRecored(Item item)
+        {
+            if (item.Tags != null && item.Tags.Contains("Key"))
+            {
+                return Duckov.MasterKeys.MasterKeysManager.IsActive(item.TypeID);
+            }
             return false;
         }
 
