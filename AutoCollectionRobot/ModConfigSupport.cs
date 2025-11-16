@@ -80,6 +80,15 @@ namespace AutoCollectionRobot
                 ModBehaviour.Instance.config.collectLootBox
             );
 
+            ModConfigAPI.SafeAddInputWithSlider(
+                MOD_NAME,
+                "collectValue",
+                isChinese ? "收集物品價值" : "Collect Item Value Over",
+                typeof(int),
+                ModBehaviour.Instance.config.collectValue,
+                new Vector2(1, 5000)
+            );
+
             ModConfigAPI.SafeAddBoolDropdownList(
                 MOD_NAME,
                 "robotInventoryNeedInspect",
@@ -121,6 +130,7 @@ namespace AutoCollectionRobot
             ModBehaviour.Instance.config.collectGroundItems = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "collectGroundItems", ModBehaviour.Instance.config.collectGroundItems);
             ModBehaviour.Instance.config.collectLootBox = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "collectLootBox", ModBehaviour.Instance.config.collectLootBox);
             ModBehaviour.Instance.config.collectRadius = ModConfigAPI.SafeLoad<float>(MOD_NAME, "collectRadius", ModBehaviour.Instance.config.collectRadius);
+            ModBehaviour.Instance.config.collectValue = ModConfigAPI.SafeLoad<int>(MOD_NAME, "collectValue", ModBehaviour.Instance.config.collectValue);
             ModBehaviour.Instance.config.debugDrawCollectRadius = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "debugDrawCollectRadius", ModBehaviour.Instance.config.debugDrawCollectRadius);
             ModBehaviour.Instance.config.saveRobotInv = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "saveRobotInv", ModBehaviour.Instance.config.saveRobotInv);
         }

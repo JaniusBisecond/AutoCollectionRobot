@@ -30,6 +30,8 @@ namespace AutoCollectionRobot
 
         public float collectRadius = 10f;
 
+        public int collectValue = 100;
+
         public bool debugDrawCollectRadius = false;
 
         public bool saveRobotInv = false;
@@ -236,6 +238,7 @@ namespace AutoCollectionRobot
             merged.collectGroundItems = loaded.collectGroundItems;
             merged.collectLootBox = loaded.collectLootBox;
             merged.collectRadius = loaded.collectRadius;
+            merged.collectValue = loaded.collectValue;
             merged.debugDrawCollectRadius = loaded.debugDrawCollectRadius;
             merged.saveRobotInv = loaded.saveRobotInv;
 
@@ -284,16 +287,30 @@ namespace AutoCollectionRobot
 
             // robotInventoryCapacity: [10, 4096]
             int oldCapacity = cfg.robotInventoryCapacity;
-            int minCap = 10, maxCap = 4096;
-            if (oldCapacity < minCap)
+            (int min, int max) capacityCap = (10, 4096);
+            if (oldCapacity < capacityCap.min)
             {
-                cfg.robotInventoryCapacity = minCap;
+                cfg.robotInventoryCapacity = capacityCap.min;
                 UnityEngine.Debug.LogWarning($"AutoCollectRobot: LocalConfig: robotInventoryCapacity too small ({oldCapacity}), set to {cfg.robotInventoryCapacity}");
             }
-            else if (oldCapacity > maxCap)
+            else if (oldCapacity > capacityCap.max)
             {
-                cfg.robotInventoryCapacity = maxCap;
+                cfg.robotInventoryCapacity = capacityCap.max;
                 UnityEngine.Debug.LogWarning($"AutoCollectRobot: LocalConfig: robotInventoryCapacity too large ({oldCapacity}), set to {cfg.robotInventoryCapacity}");
+            }
+
+            // collectValue: [1, 5000]
+            int oldCollectValue = cfg.collectValue;
+            (int min, int max) valueCap = (1, 5000);
+            if (oldCollectValue < valueCap.min)
+            {
+                cfg.collectValue = valueCap.min;
+                UnityEngine.Debug.LogWarning($"AutoCollectRobot: LocalConfig: collectValue too small ({oldCollectValue}), set to {cfg.collectValue}");
+            }
+            else if (oldCollectValue > valueCap.max)
+            {
+                cfg.collectValue = valueCap.max;
+                UnityEngine.Debug.LogWarning($"AutoCollectRobot: LocalConfig: collectValue too large ({oldCollectValue}), set to {cfg.collectValue}");
             }
 
             // configToken 检查（已在 Load 中处理迁移），此处仅记录提示

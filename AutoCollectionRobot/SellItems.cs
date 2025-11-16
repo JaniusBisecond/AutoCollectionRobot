@@ -8,6 +8,7 @@ using ItemStatsSystem.Data;
 using SodaCraft.Localizations;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -16,12 +17,12 @@ namespace AutoCollectionRobot
     public class SellItems
     {
 
-        public const string merchantID_Fo = "Merchant_Fo";                 //佛哥
-        public const string merchantID_Ming = "Merchant_Ming";             //小明
-        public const string merchantID_Weapon = "Merchant_Weapon";         //老吴
-        public const string merchantID_Equipment = "Merchant_Equipment";   //橘子
-        public const string merchantID_Mud = "Merchant_Mud";               //泥巴
-        public const string merchantID_Normal = "Merchant_Normal";         //售货机
+        public static readonly string merchantID_Fo = "Merchant_Fo";                 //佛哥
+        public static readonly string merchantID_Ming = "Merchant_Ming";             //小明
+        public static readonly string merchantID_Weapon = "Merchant_Weapon";         //老吴
+        public static readonly string merchantID_Equipment = "Merchant_Equipment";   //橘子
+        public static readonly string merchantID_Mud = "Merchant_Mud";               //泥巴
+        public static readonly string merchantID_Normal = "Merchant_Normal";         //售货机
 
         public static void SellRobotItemsToShop()
         {
@@ -34,7 +35,14 @@ namespace AutoCollectionRobot
                     return;
                 }
 
-                if (ModBehaviour.Instance._robotLootbox == null || ModBehaviour.Instance._robotLootbox == null)
+                MethodInfo sellFunc = typeof(StockShop).GetMethod("Sell", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (sellFunc == null)
+                {
+                    Debug.LogError("AutoCollectRobot: SellRobotItemsToShop: can't find StockShop.Sell method via reflection.");
+                    return;
+                }
+
+                if (ModBehaviour.Instance._robotLootbox == null || ModBehaviour.Instance._robotLootbox.Inventory == null)
                 {
                     Debug.LogWarning("AutoCollectRobot: SellRobotItemsToShop: robot lootbox or inventory is null.");
                     return;
@@ -42,27 +50,24 @@ namespace AutoCollectionRobot
 
                 // 收集要出售的物品快照，避免在循环中修改集合
                 List<Item> toSell = new List<Item>();
-                try
+                foreach (Item it in ModBehaviour.Instance._robotLootbox.Inventory)
                 {
-                    foreach (Item it in ModBehaviour.Instance._robotLootbox.Inventory)
+                    try
                     {
                         if (it == null) continue;
-                        try
-                        {
-                            if (!it.CanBeSold) continue;
-                            if (ItemWishlist.GetWishlistInfo(it.TypeID).isManuallyWishlisted) continue; //跳过愿望单物品
-                            if (it.TypeID == 451) continue; //跳过现金
-                        }
-                        catch
-                        {
-                            continue;
-                        }
+                        if (!it.CanBeSold) continue;
+                        if (it.TypeID == 451) continue; //跳过现金
+
+                        // 跳过愿望单物品
+                        var wishInfo = ItemWishlist.GetWishlistInfo(it.TypeID);
+                        if (wishInfo.isManuallyWishlisted || wishInfo.isBuildingRequired || wishInfo.isQuestRequired) continue;
+
                         toSell.Add(it);
                     }
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
                 }
 
                 if (toSell.Count == 0)
@@ -71,18 +76,10 @@ namespace AutoCollectionRobot
                     return;
                 }
 
-                MethodInfo sellFunc = typeof(StockShop).GetMethod("Sell", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (sellFunc == null)
-                {
-                    Debug.LogError("AutoCollectRobot: SellRobotItemsToShop: can't find StockShop.Sell method via reflection.");
-                    return;
-                }
-
                 Debug.Log($"AutoCollectRobot: Selling {toSell.Count} items to shop '{shop.MerchantID}'");
 
                 foreach (Item item in toSell)
                 {
-                    if (item == null) continue;
                     try
                     {
                         object task = sellFunc.Invoke(shop, new object[] { item });
@@ -120,35 +117,29 @@ namespace AutoCollectionRobot
                 {
                     return null;
                 }
+
                 var shops = UnityEngine.Object.FindObjectsOfType<StockShop>();
                 if (shops == null || shops.Length == 0)
                 {
                     Debug.Log("AutoCollectRobot: TryFindShopByMerchanID: No StockShop instances found in scene.");
                     return null;
                 }
-                foreach (var s in shops)
+
+                var merchant = shops.FirstOrDefault(s => s.MerchantID.Equals(merchantId, StringComparison.OrdinalIgnoreCase));
+                if (merchant != null)
                 {
-                    try
-                    {
-                        if (string.Equals(s.MerchantID, merchantId, StringComparison.OrdinalIgnoreCase))
-                        {
-                            return s;
-                        }
-                    }
-                    catch { }
+                    return merchant;
                 }
+
                 Debug.Log($"AutoCollectRobot: Cant find StockShop with MerchantID='{merchantId}', Try find merchant_Normal");
-                foreach (var s in shops)
+
+                merchant = shops.FirstOrDefault(s => s.MerchantID.Equals(merchantID_Normal, StringComparison.OrdinalIgnoreCase));
+                if (merchant != null)
                 {
-                    try
-                    {
-                        if (string.Equals(s.MerchantID, merchantID_Normal, StringComparison.OrdinalIgnoreCase))
-                        {
-                            return s;
-                        }
-                    }
-                    catch { }
+                    return merchant;
                 }
+
+                return null;
             }
             catch (Exception e)
             {
