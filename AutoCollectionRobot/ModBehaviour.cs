@@ -400,6 +400,7 @@ namespace AutoCollectionRobot
                         if (lootbox.name == "PlayerStorage") return;
 
                         if (lootbox != null && lootbox.Inventory != null && lootbox.Inventory.Content != null &&
+                            lootbox != _robotLootbox &&
                             lootbox.Inventory.Content.Count > 0)
                         {
                             List<Item> itemList = new List<Item>();
