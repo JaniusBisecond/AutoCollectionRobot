@@ -418,25 +418,32 @@ namespace AutoCollectionRobot
                                 }
                             }
 
+                            bool bInvFull = false; //背包满时，有可能可以堆叠，依旧继续。如：第一格手枪，第二格子弹
                             foreach (Item item in itemList)
                             {
                                 try
                                 {
-                                    if (player.CharacterItem.Inventory.GetFirstEmptyPosition() < 0)
-                                    {
-                                        Debug.Log("AutoCollectRobot: SearchAndPickUpItems: Robot inventory is full, cannot pick up more items.");
-                                        CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
-                                        return;
-                                    }
                                     CheckRobotLootboxAndTryCreateIfNone();
-                                    PickupItemToLoot(item, _robotLootbox);
+                                    if(!PickupItemToLoot(item, _robotLootbox))
+                                    {
+                                        bInvFull = true;
+                                    }
                                 }
                                 catch (Exception e)
                                 {
                                     Debug.LogException(e);
                                 }
                             }
+                            if (bInvFull)
+                            {
+                                break;
+                            }
+                        }
 
+                        // 完全搜索完的容器，修改其标记
+                        if (lootbox != null)
+                        {
+                            lootbox.StopInteract();
                         }
                     }
                     else if (config.collectGroundItems && collider.GetComponent<InteractablePickup>() != null)
@@ -510,16 +517,11 @@ namespace AutoCollectionRobot
             Inventory inventory = lootbox.Inventory;
             if (inventory != null)
             {
-                item.AgentUtilities.ReleaseActiveAgent();
-                item.Detach();
                 if (!inventory.AddAndMerge(item))
                 {
-                    if (!inventory.AddItem(item))
-                    {
-                        Debug.Log("AutoCollectRobot: Inventory is full, cannot add item.");
-                        CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
-                        return false;
-                    }
+                    Debug.Log("AutoCollectRobot: Inventory is full, cannot add item.");
+                    CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
+                    return false;
                 }
                 return true;
             }
