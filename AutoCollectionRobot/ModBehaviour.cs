@@ -436,7 +436,7 @@ namespace AutoCollectionRobot
                             }
                             if (bInvFull)
                             {
-                                break;
+                                continue;
                             }
                         }
 
