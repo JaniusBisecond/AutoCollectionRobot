@@ -455,6 +455,7 @@ namespace AutoCollectionRobot
                             {
                                 Item item = groundItem.ItemAgent.Item;
                                 CheckRobotLootboxAndTryCreateIfNone();
+                                item.Detach();
                                 PickupItemToLoot(item, _robotLootbox);
                             }
                             catch (Exception e)
@@ -518,20 +519,13 @@ namespace AutoCollectionRobot
                 Inventory inventory = lootbox.Inventory;
                 if (inventory != null)
                 {
-                    int firstEmptyPosition = inventory.GetFirstEmptyPosition();
-                    if (firstEmptyPosition < 0)
-                    {
-                        return false;
-                    }
-
-                    item.AgentUtilities.ReleaseActiveAgent();
-                    item.Detach();
                     if (!inventory.AddAndMerge(item))
                     {
                         Debug.Log("AutoCollectRobot: Inventory is full, cannot add item.");
                         CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
                         return false;
                     }
+                    item.AgentUtilities.ReleaseActiveAgent();
                     return true;
                 }
                 Debug.LogError("AutoCollectRobot: PickupItemToLoot:loot inventory is null");
