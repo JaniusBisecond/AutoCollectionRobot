@@ -80,7 +80,7 @@ namespace AutoCollectionRobot
         {
             //if (Input.GetKeyDown(KeyCode.Z))
             //{
-            //    Item item = ItemAssetsCollection.InstantiateSync((int)RobotID);
+            //    Item item = ItemAssetsCollection.InstantiateSync(754);
             //    ItemUtilities.SendToPlayerCharacterInventory(item, false);
             //}
 
@@ -509,24 +509,39 @@ namespace AutoCollectionRobot
 
         private bool PickupItemToLoot(Item item, InteractableLootbox lootbox)
         {
-            if (item == null)
+            try
             {
-                return false;
-            }
-
-            Inventory inventory = lootbox.Inventory;
-            if (inventory != null)
-            {
-                if (!inventory.AddAndMerge(item))
+                if (item == null)
                 {
-                    Debug.Log("AutoCollectRobot: Inventory is full, cannot add item.");
-                    CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
                     return false;
                 }
-                return true;
+                Inventory inventory = lootbox.Inventory;
+                if (inventory != null)
+                {
+                    int firstEmptyPosition = inventory.GetFirstEmptyPosition();
+                    if (firstEmptyPosition < 0)
+                    {
+                        return false;
+                    }
+
+                    item.AgentUtilities.ReleaseActiveAgent();
+                    item.Detach();
+                    if (!inventory.AddAndMerge(item))
+                    {
+                        Debug.Log("AutoCollectRobot: Inventory is full, cannot add item.");
+                        CharacterMainControl.Main.PopText(LocalizationManager.GetPlainText(i18n_Key_RobotBagFull));
+                        return false;
+                    }
+                    return true;
+                }
+                Debug.LogError("AutoCollectRobot: PickupItemToLoot:loot inventory is null");
+                return false;
             }
-            Debug.LogError("AutoCollectRobot: PickupItemToLoot:loot inventory is null");
-            return false;
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return false;
+            }
         }
 
         private void AddRobotToInv()
